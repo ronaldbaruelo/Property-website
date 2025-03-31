@@ -1,0 +1,289 @@
+var express = require('express')
+var app = express()
+var bcrypt = require('bcrypt')
+
+var session = require('express-session')
+
+var conn = require('./dbConfig')
+
+app.set('view engine', 'ejs')
+
+app.use(
+  session({
+    secret: 'yoursecret',
+    resave: true,
+    saveUninitialized: true,
+  })
+)
+
+app.use('/public', express.static('public'))
+
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+
+app.get('/', function (req, res) {
+  if (req.session.loggedin) {
+    conn.query(
+      'SELECT * FROM listing ORDER BY listing_date DESC LIMIT 3',
+      function (err, result) {
+        if (err) throw err
+        console.log(result)
+        res.render('homeMember', { title: 'Home', listingData: result })
+      }
+    )
+  } else {
+    conn.query(
+      'SELECT * FROM listing ORDER BY listing_date DESC LIMIT 3',
+      function (err, result) {
+        if (err) throw err
+        console.log(result)
+        res.render('home', { title: 'Home', listingData: result })
+      }
+    )
+  }
+})
+app.get('/listprop', function (req, res) {
+  conn.query('SELECT * FROM listing', function (err, result) {
+    if (err) throw err
+    console.log(result)
+    res.render('listprop', { title: 'Property Listings', listingData: result })
+  })
+})
+
+app.get('/login', function (req, res) {
+  res.render('login.ejs')
+})
+app.get('/register', function (req, res) {
+  res.render('register.ejs')
+})
+
+app.get('/listprop', function (req, res) {
+  res.render('listprop.ejs')
+})
+
+app.post('/auth', function (req, res) {
+  const username = req.body.username
+  const password = req.body.password
+
+  if (username && password) {
+    // Use parameterized query to prevent SQL injection
+    conn.query(
+      'SELECT * FROM users WHERE name = ?',
+      [username],
+      function (error, results) {
+        if (error) {
+          console.error('Database error:', error)
+          res
+            .status(500)
+            .send(
+              'An error occurred while accessing the database. Please try again later.'
+            )
+          return
+        }
+
+        if (results.length > 0) {
+          const user = results[0]
+
+          // Compare the provided password with the hashed password in the database
+          bcrypt.compare(password, user.password, function (err, isMatch) {
+            if (err) {
+              console.error('Error comparing passwords:', err)
+              res
+                .status(500)
+                .send(
+                  'An error occurred while verifying your credentials. Please try again later.'
+                )
+              return
+            }
+
+            if (isMatch) {
+              // Set session variables for the logged-in user
+              req.session.loggedin = true
+              req.session.username = username
+              console.log(`User ${username} logged in successfully.`)
+              res.redirect('/membersOnly')
+            } else {
+              console.warn(`Failed login attempt for user: ${username}`)
+              res.status(401).send('Incorrect Username and/or Password!')
+            }
+          })
+        } else {
+          console.warn(`Login attempt with non-existent username: ${username}`)
+          res.status(401).send('Incorrect Username and/or Password!')
+        }
+      }
+    )
+  } else {
+    console.warn('Login attempt with missing username or password.')
+    res.status(400).send('Please enter both Username and Password!')
+  }
+})
+//CREATE USER
+// Register a new user
+app.post('/register', function (req, res) {
+  let username = req.body.username
+  let password = req.body.password
+  let email = req.body.email
+  let passwordVer = req.body.passwordVer
+
+  if (password === passwordVer) {
+    const hashedPassword = bcrypt.hashSync(password, 10)
+    console.log('Hashed password:', hashedPassword)
+
+    // Use parameterized query to prevent SQL injection
+    const sql = 'INSERT INTO users (name, password, email) VALUES (?, ?, ?)'
+    conn.query(sql, [username, hashedPassword, email], function (error) {
+      if (error) {
+        console.error('Error inserting user into database:', error)
+        res
+          .status(500)
+          .send(
+            'An error occurred while creating the user. Please try again later.'
+          )
+      } else {
+        console.log('User Created')
+        req.session.newUser = username
+        res.render('Home', { session: req.session })
+      }
+    })
+  } else {
+    console.log('Password does not match')
+    res.status(400).send('Passwords do not match. Please try again.')
+  }
+})
+
+// Handle contact form submission
+app.post('/contact', function (req, res) {
+  let name = req.body.name
+  let phone = req.body.phone
+  let email = req.body.email
+  let subject = req.body.subject
+  let text_message = req.body.text_message
+
+  if (name && phone && email && subject && text_message) {
+    // Use parameterized query to prevent SQL injection
+    const sql =
+      'INSERT INTO message (name, phone, email, subject, text_message) VALUES (?, ?, ?, ?, ?)'
+    conn.query(
+      sql,
+      [name, phone, email, subject, text_message],
+      function (err) {
+        if (err) {
+          console.error('Error inserting message into database:', err)
+          res
+            .status(500)
+            .send(
+              'An error occurred while submitting your message. Please try again later.'
+            )
+        } else {
+          console.log('Message record inserted')
+          res.render('login')
+        }
+      }
+    )
+  } else {
+    console.log('Error: Missing required fields')
+    res
+      .status(400)
+      .send('All fields are required. Please fill out the form completely.')
+  }
+})
+
+// Members-only page
+app.get('/membersOnly', function (req, res, next) {
+  if (req.session.loggedin === true) {
+    conn.query('SELECT * FROM users', function (error, records) {
+      if (error) {
+        console.error('Error reading from database:', error)
+        res
+          .status(500)
+          .send(
+            'An error occurred while retrieving user data. Please try again later.'
+          )
+      } else {
+        console.log(records)
+        res.render('membersOnly', { users: records })
+      }
+    })
+  } else {
+    res.status(401).send('Please log in to view this page!')
+  }
+})
+
+app.get('/send-message', function (req, res, next) {})
+
+app.get('/listings', function (req, res) {
+  res.render('listings')
+})
+
+app.get('/membersOnly', function (req, res) {
+  res.render('membersOnly')
+})
+
+app.get('/about', function (req, res) {
+  res.render('about')
+})
+
+app.get('/contact', function (req, res) {
+  res.render('contact')
+})
+app.get('/modal', function (req, res) {
+  res.render('modal')
+})
+app.get('/logout', (req, res) => {
+  req.session.destroy()
+  res.redirect('/')
+})
+
+app.set('view engine', 'ejs')
+const PORT = 3000
+
+function startServer(port) {
+  app
+    .listen(port, () => {
+      console.log(`Node app is running on port ${port}`)
+    })
+    .on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        console.error(
+          `Port ${port} is already in use. Trying a different port...`
+        )
+        startServer(port + 1) // Try the next port
+      } else {
+        console.error('An error occurred:', err)
+      }
+    })
+}
+
+startServer(PORT)
+// Contact form submission
+app.post('/contact', function (req, res) {
+  const { name, phone, email, subject, text_message } = req.body
+
+  if (name && phone && email && subject && text_message) {
+    const sql =
+      'INSERT INTO message (name, phone, email, subject, text_message) VALUES (?, ?, ?, ?, ?)'
+    conn.query(
+      sql,
+      [name, phone, email, subject, text_message],
+      function (err) {
+        if (err) {
+          console.error('Error inserting message into database:', err)
+          res
+            .status(500)
+            .send(
+              'An error occurred while submitting your message. Please try again later.'
+            )
+          return
+        }
+        console.log('Message record inserted')
+        res.render('login')
+      }
+    )
+  } else {
+    console.log('Error: Missing required fields')
+    res
+      .status(400)
+      .send('All fields are required. Please fill out the form completely.')
+  }
+})

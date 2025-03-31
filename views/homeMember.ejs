@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <link rel="stylesheet" href="public/css/styles.css" />
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="public/css/all.css" />
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="public/css/bootstrap.css" />
+    <title>Far East Property</title>
+  </head>
+
+  <body>
+    <!-- Topbar -->
+    <%- include('partials/topbar.ejs')%>
+
+    <!-- Navbar -->
+    <%- include('partials/navbar2.ejs')%>
+
+    <!-- Showcase -->
+    <section id="showcase">
+      <div class="container text-center">
+        <div class="home-search p-5">
+          <div class="overlay p-5">
+            <h1 class="display-4 mb-4">Property Searching Just Got So Easy</h1>
+            <p class="lead">
+              Search and Find Your Dream Property We Make it easy for You.
+            </p>
+            <div class="search">
+              <form action="search.html">
+                <!-- Form Row 1 -->
+                <div class="form-row">
+                  <div class="col-md-4 mb-3">
+                    <label class="sr-only">Keywords</label>
+                    <input
+                      type="text"
+                      name="keywords"
+                      class="form-control"
+                      placeholder="Keyword (Pool, Garage, etc)"
+                    />
+                  </div>
+
+                  <div class="col-md-4 mb-3">
+                    <label class="sr-only">Address</label>
+                    <input
+                      type="text"
+                      name="city"
+                      class="form-control"
+                      placeholder="Address"
+                    />
+                  </div>
+
+                  <div class="col-md-4 mb-3">
+                    <label class="sr-only">City</label>
+                    <select name="state" class="form-control">
+                      <option selected="true" disabled="disabled">
+                        All City
+                      </option>
+                      <option value="AKL">Auckland</option>
+                      <option value="CH">Christchurch</option>
+                      <option value="WL">Wellington</option>
+                      <option value="HM">Hamilton</option>
+                      <option value="TU">Tauranga</option>
+                      <option value="LH">Lower Hutt</option>
+                      <option value="DU">Dunedin</option>
+                      <option value="PN">Palmerston North</option>
+                      <option value="NA">Napier</option>
+                      <option value="HC">Hibiscus Coast</option>
+                      <option value="NP">New Plymouth</option>
+                      <option value="RO">Rotorua</option>
+                      <option value="WH">Whangarei</option>
+                      <option value="NL">Nelson</option>
+                      <option value="HS">Hastings</option>
+                      <option value="IN">Invercargill</option>
+                      <option value="UH">Upper Hut</option>
+                      <option value="WI">Whanganui</option>
+                      <option value="GI">Gisborne</option>
+                    </select>
+                  </div>
+                </div>
+                <!-- Form Row 2 -->
+                <div class="form-row">
+                  <div class="col-md-6 mb-3">
+                    <label class="sr-only">Bedrooms</label>
+                    <select name="bedrooms" class="form-control">
+                      <option selected="true" disabled="disabled">
+                        Bedrooms (All)
+                      </option>
+                      <option>1</option>
+                      <option>2</option>
+                      <option>3</option>
+                      <option>4</option>
+                      <option>5</option>
+                      <option>6</option>
+                      <option>7</option>
+                      <option>8</option>
+                      <option>9</option>
+                      <option>10</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <select class="form-control" id="type">
+                      <option selected="true" disabled="disabled">
+                        Max Price (Any)
+                      </option>
+                      <option value="100000">$100,000</option>
+                      <option value="200000">$200,000</option>
+                      <option value="300000">$300,000</option>
+                      <option value="400000">$400,000</option>
+                      <option value="500000">$500,000</option>
+                      <option value="600000">$600,000</option>
+                      <option value="700000">$700,000</option>
+                      <option value="800000">$800,000</option>
+                      <option value="900000">$900,000</option>
+                      <option value="1000000">$1M+</option>
+                    </select>
+                  </div>
+                </div>
+                <button class="btn btn-secondary btn-block mt-4" type="submit">
+                  Submit form
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Listings -->
+    <section id="listings" class="py-5">
+      <div class="container">
+        <h3 class="text-center mb-3">Latest Listings</h3>
+        <div class="row">
+          <% if (listingData.length !=0) {var i=1; listingData.forEach(
+            function(data){ %>
+          <!-- Listing  -->
+          <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card listing-preview">
+              <img
+                class="card-img-top"
+                src="<%=data.pathname%>"
+                alt=""
+              />
+              <div class="card-img-overlay">
+                <h2>
+                  <span class="badge badge-secondary text-white">$<%=data.price%></span>
+                </h2>
+              </div>
+              <div class="card-body">
+                <div class="listing-heading text-center">
+                  <h4 class="text-primary"><%=data.address%></h4>
+                  <p>
+                    <i class="fas fa-map-marker text-secondary"></i> <%=data.city%>
+                  </p>
+                </div>
+                <hr />
+                <div class="row py-2 text-secondary">
+                  <div class="col-6">
+                    <i class="fas fa-th-large"></i> Sqr.feet:<%=data.square_feet%>
+                  </div>
+                  <div class="col-6"><i class="fas fa-car"></i> Garage: <%=data.garage%></div>
+                </div>
+                <div class="row py-2 text-secondary">
+                  <div class="col-6">
+                    <i class="fas fa-bed"></i> Bedrooms:<%=data.bedroom%>
+                  </div>
+                  <div class="col-6">
+                    <i class="fas fa-bath"></i> Bathrooms:<%=data.bathroom%>
+                  </div>
+                </div>
+                <hr />
+                <div class="row py-2 text-secondary">
+                  <div class="col-6">
+                    <i class="fas fa-user"></i>Agent:<%=data.realtor%>
+                  </div>
+                </div>
+                <div class="row text-secondary pb-2">
+                  <div class="col-6">
+                    <i class="fas fa-clock"></i> <%=data.listing_date.toLocaleString('en-US',{year:'numeric',month:'long',day:'numeric'})%>
+                  </div>
+                </div>
+                <hr />
+                <a href="listing.html" class="btn btn-primary btn-block"
+                  >More Info</a
+                >
+              </div>
+            </div>
+          </div>
+
+          <% i++;})%> <%}%>
+              
+    </section>
+  
+    <section id="services" class="py-5 bg-secondary text-white">
+      <div class="container">
+        <div class="row text-center">
+          <div class="col-md-4">
+            <i class="fas fa-comment fa-4x mr-4"></i>
+            <hr />
+            <h3>Consulting Services</h3>
+            <p>
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Incidunt,
+              debitis nam! Repudiandae, provident iste consequatur hic
+              dignissimos ratione ea quae.
+            </p>
+          </div>
+          <div class="col-md-4">
+            <i class="fas fa-home fa-4x mr-4"></i>
+            <hr />
+            <h3>Propery Management</h3>
+            <p>
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Incidunt,
+              debitis nam! Repudiandae, provident iste consequatur hic
+              dignissimos ratione ea quae.
+            </p>
+          </div>
+          <div class="col-md-4">
+            <i class="fas fa-suitcase fa-4x mr-4"></i>
+            <hr />
+            <h3>Renting & Selling</h3>
+            <p>
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Incidunt,
+              debitis nam! Repudiandae, provident iste consequatur hic
+              dignissimos ratione ea quae.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Topbar -->
+    <%- include('partials/footer.ejs')%>
+
+    <script
+      src="https://code.jquery.com/jquery-3.7.1.min.js"
+      integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+      crossorigin="anonymous"
+    ></script>
+    <script src="public/js/bootstrap.bundle.min.js "></script>
+    <script src="public/js/main.js "></script>
+    <script src="https://use.fontawesome.com/fd2180b0c3.js"></script>
+  </body>
+</html>
