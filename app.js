@@ -81,51 +81,53 @@ app.get('/register', function (req, res) {
 })
  */
 app.post('/auth', function (req, res) {
-  const email = req.body.email;
-  const password = req.body.password;
+  const email = req.body.email
+  const password = req.body.password
 
   if (!email || !password) {
-    console.log('Error: Missing email or password');
-    return res.status(400).send('Please enter Email and Password!');
+    console.log('Error: Missing email or password')
+    return res.status(400).send('Please enter Email and Password!')
   }
 
   // Query to retrieve the user by email
-  const sql = 'SELECT * FROM users WHERE email = ?';
-  console.log('Executing SQL:', sql, [email]);
+  const sql = 'SELECT * FROM users WHERE email = ?'
+  console.log('Executing SQL:', sql, [email])
 
   conn.query(sql, [email], function (error, results) {
     if (error) {
-      console.error('Database error:', error);
-      return res.status(500).send('An error occurred. Please try again later.');
+      console.error('Database error:', error)
+      return res.status(500).send('An error occurred. Please try again later.')
     }
 
     if (results.length > 0) {
-      const user = results[0];
+      const user = results[0]
 
       // Compare the provided password with the hashed password in the database
       bcrypt.compare(password, user.password, function (err, isMatch) {
         if (err) {
-          console.error('Error comparing passwords:', err);
-          return res.status(500).send('An error occurred. Please try again later.');
+          console.error('Error comparing passwords:', err)
+          return res
+            .status(500)
+            .send('An error occurred. Please try again later.')
         }
 
         if (isMatch) {
           // Set session variables for the logged-in user
-          req.session.loggedin = true;
-          req.session.email = email;
-          console.log(`User ${email} logged in successfully.`);
-          res.redirect('/membersOnly'); // Redirect to a protected page
+          req.session.loggedin = true
+          req.session.email = email
+          console.log(`User ${email} logged in successfully.`)
+          res.redirect('/membersOnly') // Redirect to a protected page
         } else {
-          console.log('Error: Invalid password');
-          res.status(401).send('Incorrect Email and/or Password!');
+          console.log('Error: Invalid password')
+          res.status(401).send('Incorrect Email and/or Password!')
         }
-      });
+      })
     } else {
-      console.log('Error: User not found');
-      res.status(401).send('Incorrect Email and/or Password!');
+      console.log('Error: User not found')
+      res.status(401).send('Incorrect Email and/or Password!')
     }
-  });
-});
+  })
+})
 
 // Contact form submission
 app.post('/contact', function (req, res) {
@@ -214,4 +216,7 @@ function startServer(port) {
     })
 }
 
-startServer(PORT)
+if (require.main === module) {
+  startServer(PORT)
+}
+module.exports = app

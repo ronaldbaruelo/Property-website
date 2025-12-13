@@ -9,7 +9,7 @@
 	<link href='https://unpkg.com/boxicons@2.1.4/dist/boxicons.js' rel='stylesheet'>
 
 	<!-- My CSS -->
-	<link rel="stylesheet" href="public/css/styles.css" />
+	<link rel="stylesheet" href="/public/css/styles.css" />
 
 	<title>AdminHub</title>
 </head>
@@ -18,7 +18,7 @@
 	<section id="sidebar">
 		<a href="#" class="brand">
 			<i class='bx bxs-smile  bx-lg'></i>
-			<span class="text">AdminHub</span>
+			<span class="text">AdminHub2</span>
 		</a>
 		<ul class="side-menu top">
 			<li class="active">
@@ -60,7 +60,7 @@
 				</a>
 			</li>
 			<li>
-				<a href="/" class="logout">
+				<a href="/logout" class="logout">
 					<i class='bx bx-power-off bx-sm bx-burst-hover' ></i>
 					<span class="text">Logout</span>
 				</a>
@@ -113,7 +113,7 @@
         <ul>
             <li><a href="#">My Profile</a></li>
             <li><a href="#">Settings</a></li>
-            <li><a href="home">Log Out</a></li>
+            <li><a href="/logout">Log Out</a></li>
         </ul>
     </div>
 </nav>
@@ -193,47 +193,26 @@
 						</thead>
            
 						<tbody>
-              
-							<tr>
-								<td>
-									<img src="https://placehold.co/600x400/png">
-									<p>Micheal John</p>
-								</td>
-								<td>18-10-2021</td>
-								<td><span class="status completed">Completed</span></td>
-							</tr>
-							<tr>
-								<td>
-									<img src="https://placehold.co/600x400/png">
-									<p>Ryan Doe</p>
-								</td>
-								<td>01-06-2022</td>
-								<td><span class="status pending">Pending</span></td>
-							</tr>
-							<tr>
-								<td>
-									<img src="https://placehold.co/600x400/png">
-									<p>Tarry White</p>
-								</td>
-								<td>14-10-2021</td>
-								<td><span class="status process">Process</span></td>
-							</tr>
-							<tr>
-								<td>
-									<img src="https://placehold.co/600x400/png">
-									<p>Selma</p>
-								</td>
-								<td>01-02-2023</td>
-								<td><span class="status pending">Pending</span></td>
-							</tr>
-							<tr>
-								<td>
-									<img src="https://placehold.co/600x400/png">
-									<p>Andreas Doe</p>
-								</td>
-								<td>31-10-2021</td>
-								<td><span class="status completed">Completed</span></td>
-							</tr>
+              <% if (typeof listings !== 'undefined' && listings.length > 0) { %>
+                <% listings.forEach(function(listing) { %>
+                  <tr>
+                    <td><%= listing.id %></td>
+                    <td><%= listing.address %></td>
+                    <td><%= listing.city %></td>
+                    <td>$<%= listing.price.toLocaleString() %></td>
+                    <td><%= listing.bedroom %></td>
+                    <td><%= listing.bathroom %></td>
+                    <td><%= listing.garage %></td>
+                    <td><%= listing.square_feet %></td>
+                    <td><%= listing.lot %></td>
+                    <td><%= new Date(listing.listing_date).toLocaleDateString() %></td>
+                    <td><%= listing.realtor %></td>
+                    <td><%= listing.description.substring(0, 30) %>...</td>
+                  </tr>
+                <% }); %>
+              <% } else { %>
+                <tr><td colspan="12">No listings available.</td></tr>
+              <% } %>
 						</tbody>
             
 					</table>
@@ -274,11 +253,9 @@
 			</div>
       
 		</main>
-   
 		<!-- MAIN -->
-    
 	</section>
-  
+
 	<!-- CONTENT -->
 	
 
