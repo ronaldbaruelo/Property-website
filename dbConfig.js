@@ -1,22 +1,15 @@
 var mysql = require('mysql')
-var conn = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'propertydb',
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
+var conn = mysql.createPool({
+  connectionLimit: 10,
+  host:
+    process.env.DB_HOST || 'mysql-2509f5c6-rcbaruelo1029-f8fe.l.aivencloud.com',
+  user: process.env.DB_USER || 'avnadmin',
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'propertydb',
-  port: process.env.DB_PORT || 3306
-})
-
-conn.connect(function (err) {
-  if (err) {
-    console.error('Database connection failed:', err)
-    return
-  }
-  console.log('Connected to the database')
+  database: process.env.DB_NAME || 'defaultdb',
+  port: process.env.DB_PORT || 12264,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 })
 
 module.exports = conn
