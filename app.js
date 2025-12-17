@@ -2,7 +2,7 @@ const express = require('express')
 const app = express()
 const bcrypt = require('bcryptjs')
 const session = require('express-session')
-const conn = require('./dbConfig')
+const db = require('./dbConfig')
 
 app.set('view engine', 'ejs')
 
@@ -19,29 +19,27 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 // Home route
-app.get('/', function (req, res) {
-  const query = 'SELECT * FROM listing ORDER BY listing_date DESC LIMIT 3'
-  conn.query(query, function (err, result) {
-    if (err) {
-      console.error('Database error:', err)
-      res.status(500).send('An error occurred. Please try again later.')
-      return
-    }
+app.get('/', async function (req, res) {
+  const sql = 'SELECT * FROM listing ORDER BY listing_date DESC LIMIT 3'
+  try {
+    const result = await db.query(sql)
     const view = req.session.loggedin ? 'homeMember' : 'home'
     res.render(view, { title: 'Home', listingData: result })
-  })
+  } catch (err) {
+    console.error('Database error:', err)
+    res.status(500).send('An error occurred. Please try again later.')
+  }
 })
 
 // Property listings
-app.get('/listprop', function (req, res) {
-  conn.query('SELECT * FROM listing', function (err, result) {
-    if (err) {
-      console.error('Database error:', err)
-      res.status(500).send('An error occurred. Please try again later.')
-      return
-    }
+app.get('/listprop', async function (req, res) {
+  try {
+    const result = await db.query('SELECT * FROM listing')
     res.render('listprop', { title: 'Property Listings', listingData: result })
-  })
+  } catch (err) {
+    console.error('Database error:', err)
+    res.status(500).send('An error occurred. Please try again later.')
+  }
 })
 
 // Login page
@@ -80,7 +78,7 @@ app.get('/register', function (req, res) {
   }
 })
  */
-app.post('/auth', function (req, res) {
+app.post('/auth', async function (req, res) {
   const email = req.body.email
   const password = req.body.password
 
@@ -93,15 +91,10 @@ app.post('/auth', function (req, res) {
   const sql = 'SELECT * FROM users WHERE email = ?'
   console.log('Executing SQL:', sql, [email])
 
-  conn.query(sql, [email], function (error, results) {
-    if (error) {
-      console.error('Database error:', error)
-      return res.status(500).send('An error occurred. Please try again later.')
-    }
-
+  try {
+    const results = await db.query(sql, [email])
     if (results.length > 0) {
       const user = results[0]
-
       // Compare the provided password with the hashed password in the database
       bcrypt.compare(password, user.password, function (err, isMatch) {
         if (err) {
@@ -112,11 +105,10 @@ app.post('/auth', function (req, res) {
         }
 
         if (isMatch) {
-          // Set session variables for the logged-in user
           req.session.loggedin = true
           req.session.email = email
           console.log(`User ${email} logged in successfully.`)
-          res.redirect('/membersOnly') // Redirect to a protected page
+          res.redirect('/membersOnly')
         } else {
           console.log('Error: Invalid password')
           res.status(401).send('Incorrect Email and/or Password!')
@@ -126,33 +118,31 @@ app.post('/auth', function (req, res) {
       console.log('Error: User not found')
       res.status(401).send('Incorrect Email and/or Password!')
     }
-  })
+  } catch (error) {
+    console.error('Database error:', error)
+    res.status(500).send('An error occurred. Please try again later.')
+  }
 })
 
 // Contact form submission
-app.post('/contact', function (req, res) {
+app.post('/contact', async function (req, res) {
   const { name, phone, email, subject, text_message } = req.body
 
   if (name && phone && email && subject && text_message) {
     const sql =
       'INSERT INTO message (name, phone, email, subject, text_message) VALUES (?, ?, ?, ?, ?)'
-    conn.query(
-      sql,
-      [name, phone, email, subject, text_message],
-      function (err) {
-        if (err) {
-          console.error('Error inserting message into database:', err)
-          res
-            .status(500)
-            .send(
-              'An error occurred while submitting your message. Please try again later.'
-            )
-          return
-        }
-        console.log('Message record inserted')
-        res.render('login')
-      }
-    )
+    try {
+      await db.query(sql, [name, phone, email, subject, text_message])
+      console.log('Message record inserted')
+      res.render('login')
+    } catch (err) {
+      console.error('Error inserting message into database:', err)
+      res
+        .status(500)
+        .send(
+          'An error occurred while submitting your message. Please try again later.'
+        )
+    }
   } else {
     console.log('Error: Missing required fields')
     res
@@ -162,20 +152,19 @@ app.post('/contact', function (req, res) {
 })
 
 // Members-only page
-app.get('/membersOnly', function (req, res) {
+app.get('/membersOnly', async function (req, res) {
   if (req.session.loggedin) {
-    conn.query('SELECT * FROM users', function (error, records) {
-      if (error) {
-        console.error('Error reading from database:', error)
-        res
-          .status(500)
-          .send(
-            'An error occurred while retrieving user data. Please try again later.'
-          )
-        return
-      }
+    try {
+      const records = await db.query('SELECT * FROM users')
       res.render('membersOnly', { users: records })
-    })
+    } catch (error) {
+      console.error('Error reading from database:', error)
+      res
+        .status(500)
+        .send(
+          'An error occurred while retrieving user data. Please try again later.'
+        )
+    }
   } else {
     res.status(401).send('Please log in to view this page!')
   }
